@@ -1,0 +1,12 @@
+# Ignore data directory
+data/
+
+# Ignore Python compiled files
+__pycache__/
+*.pyc
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore environment files
+.env"data/" 
