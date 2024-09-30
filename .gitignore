@@ -1,5 +1,9 @@
 # Ignore data directory
 data/
+data/credits.csv
+data/keywords.csv
+data/movies.csv
+data/ratings.csv
 
 # Ignore Python compiled files
 __pycache__/
