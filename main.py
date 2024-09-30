@@ -1,75 +1,74 @@
 ### Data Download & Review
 import pandas as pd
-import ast
-import neattext.functions as nt
-from utility import fetch_details
-from recommender.popularity import popularity_rec
-from recommender.context import content_rec
-from review import review
+from recommender.content_filter.popularity import popularity_rec
+from recommender.content_filter.item_similarity import content_rec
+from recommender.collaborative_filter.item import item_rec
+from recommender.collaborative_filter.user import user_rec
 
-print('Loading............\n')
+
+from review import review
+from preprocess import preprocess
+
+print('Loading the data......\n')
 
 movies_df = pd.read_csv('data/movies.csv', low_memory=False) #  loads the whole CSV file at once
 credits_df = pd.read_csv('data/credits.csv')
 keywords_df = pd.read_csv('data/keywords.csv')
 
-user_inp = input('Do you want to review the data frames? (y/n): ')
-if user_inp == 'y':
-    review(movies_df)
-    print()
-else:
-    print()
+print('Processing the data......\n')
+final_df = preprocess(movies_df, credits_df, keywords_df)
 
-"""### Data Preprocessing"""
+print('Select an option based on the following:')
+print('-' * 50)
+print('Enter 1 for Data Review')
+print('Enter 2 for Popularity-Based Content Filtering')
+print('Enter 3 for Item-Similarity-Based Content Filtering')
+print('Enter 4 for User-Based Collaborative Filtering')
+print('Enter 5 for Item-Based Collaborative Filtering')
+print('Enter any other key to quit')
 
-movies_df.drop(['belongs_to_collection', 'budget', 'homepage', 'imdb_id', 'poster_path', 'production_companies',
-       'production_countries', 'revenue', 'runtime', 'release_date', 'spoken_languages', 'tagline', 'original_title', 'video', 'status'], axis=1, inplace=True)
+user_inp = input()
 
-#print(movies_df.isnull().sum())
-movies_df.dropna(inplace=True)
-#print(movies_df.isnull().sum())
+try:
+    user_inp = int(user_inp)
+    
+    if user_inp == 1:
+        ratings_df = pd.read_csv('data/ratings_small.csv', low_memory=False)
+        review(movies_df)
+        review(credits_df)
+        review(keywords_df)
+        review(ratings_df)
 
-#print(movies_df.duplicated().sum())
-movies_df.drop_duplicates(inplace=True)
-#print(movies_df.duplicated().sum())
+    elif user_inp == 2:
+        final_df = final_df.sample(5000).reset_index(drop=True)
+        count = input('How many recommendations do you want? ')
+        if count.strip() == '' or not count.isdigit():
+            popularity_rec(final_df)
+        else:
+            count = int(count)
+            popularity_rec(final_df, count)
 
-movies_df['id'] = movies_df['id'].astype('int')
-movies_df['popularity'] = movies_df['popularity'].astype('float64')
+    elif user_inp == 3:
+        final_df = final_df.sample(5000).reset_index(drop=True)
+        movie_title = input('Type a movie title: ')
+        content_rec(movie_title, final_df)
 
-sub_merged_df = pd.merge(movies_df, credits_df, on='id', how='left')
-merged_df = pd.merge(sub_merged_df, keywords_df, on='id', how='left')
+    elif user_inp == 4:
+        user_id = int(input('Enter the user_id: '))
+        ratings_df = pd.read_csv('data/ratings_small.csv', low_memory=False)
+        item_rec(ratings_df, final_df, user_id)
+        
+    elif user_inp == 5:
+        user_id = int(input('Enter the user_id: '))
+        ratings_df = pd.read_csv('data/ratings_small.csv', low_memory=False)
+        user_rec(ratings_df, final_df, user_id)
 
-#print(movies_df.isnull().sum())
-movies_df.dropna(inplace=True)
-#print(movies_df.isnull().sum())
+    else:
+        print("\nInvalid option, quitting...")
+        quit()
 
-final_df = merged_df.sample(3000).reset_index(drop=True)
+except ValueError as E:
+    print(f"\nInvalid input, quitting...{E}")
+    quit()
 
-del movies_df, credits_df, keywords_df, merged_df
-
-final_df = final_df.dropna(subset=['title', 'genres'])
-
-final_df['genres'] = final_df['genres'].apply(lambda x: fetch_details(ast.literal_eval(x)))
-final_df['crew'] = final_df['crew'].apply(lambda x: fetch_details(ast.literal_eval(x), director=True))
-final_df['cast'] = final_df['cast'].apply(lambda x: fetch_details(ast.literal_eval(x), character=True))
-final_df['keywords'] = final_df['keywords'].apply(lambda x: fetch_details(ast.literal_eval(x)))
-
-print('POPULARITY BASED RECOMMENDATION')
-count = input('How many recommendation do you want? ')
-if count.strip() == '' or not count.isdigit():
-    popularity_rec(final_df)
-    print()
-else:
-    count = int(count)
-    popularity_rec(final_df, count)
-    print()
-
-final_df['content'] = final_df['genres'] + ' ' + final_df['crew'] + ' ' + final_df['cast'] + ' ' + final_df['keywords'] + ' ' + final_df['overview']
-final_df['content'] = final_df['content'].apply(nt.remove_stopwords)
-final_df['content'] = final_df['content'].apply(nt.remove_special_characters)
-
-print('CONTEXT BASED RECOMMENDATION')
-movie_title = input('Type a movie title: ')
-content_rec(movie_title, final_df)
-print()
 
