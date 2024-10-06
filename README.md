@@ -16,7 +16,7 @@ This algorithm recommends movies based on the preferences of users who are simil
 #### Item-Based Collaborative Filtering
 This algorithm recommends movies based on the similarity of items that the user has liked or rated highly in the past.
 
-#### Popularity-Based Recommendations
+### Popularity-Based Recommendations
 This algorithm leverages both movie popularity and ratings to provide balanced recommendations. It calculates a Bayesian average of movie ratings to score movies effectively.
 
 ## INSTALLATION
@@ -25,16 +25,19 @@ To set up the project, run the following commands:
 pip install pandas==2.2.3
 pip install surprise==1.1.4
 pip install neattext==0.1.3
+```
 
 ## USAGE
 1. Clone the repository
 ```bash
 git clone <repository-url>
 cd <repository-folder>
+```
 
 2. Run the scrip
 ```bash
 python script_name.py
+```
 
 3. Follow the prompts to choose a recommendation method:
 
