@@ -34,9 +34,9 @@ git clone <repository-url>
 cd <repository-folder>
 ```
 
-2. Run the scrip
+2. Run the script
 ```bash
-python script_name.py
+python main.py
 ```
 
 3. Follow the prompts to choose a recommendation method:
